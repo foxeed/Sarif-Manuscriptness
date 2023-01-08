@@ -13,81 +13,78 @@
 """
 
 
-import random
-from functools import reduce
+from random import choices
+from typing import Any
+
+
+class Settings(dict):
+    def __init__(self, *kv_args: tuple[Any, int]):
+        super().__init__({setting:prob for (setting, prob) in kv_args})
+
+    # gives first weighted choice
+    def weighted_choice(self):
+        return choices(list(self.keys()), list(self.values()))[0]
+
+class BeatifulHeader:
+    def __init__(self, title: str):
+        self._title = f' {title} '
+
+    def __repr__(self):
+        return f'{self._title:=^55}'
 
 
 # Количество случайных настроек
-AMOUNTS = [
+AMOUNTS = Settings(
 #   Количество             Вероятность
     (0,                    4),
     (1,                    4),
     (2,                    3),
     (3,                    2),
     (4,                    1),
-]
+)
 
 
 # Настройки планеты
-PLANET_CONDITIONS = [
+PLANET_CONDITIONS = Settings(
 #   Настройка              Вероятность
     ("Feeble enemies",     2),
     ("Long cycles",        3),
     ("Double iron",        1),
     ("Maze structure",     4),
-]
-
-
-"""
-    Выбор элемента в соответствии с его весом.
-"""
-def weighted_choice(settings: list):
-    total_weight = reduce(lambda a, b: a + b, [w for (s, w) in settings])
-    r = random.random() * total_weight
-    # Секции делят интервал (от 0 до Суммы весов) на отрезки для каждого элемента.
-    # Проверяем в какую секцию попало случайное число r.
-    choice = None
-    section = 0
-    for (s, w) in settings:
-        section += w
-        if r < section:
-            # Попали в секцию для этого элемента.
-            choice = s
-            break
-    return choice
+)
 
 
 # Unit test
-def test_weighted_choice():
-    stats = {0:0, 1:0, 2:0, 3:0, 4:0}
+def test_weighted_choice(settings: Settings):
+    stats = {stat:0 for stat in range(len(settings))}
     test_range = 10_000
     for _ in range(test_range):
-        choice = weighted_choice(AMOUNTS)
+        choice = settings.weighted_choice()
         stats[choice] += 1
-    percented_stats = { key: f"{int(stats[key] / test_range * 100)}%" for key in stats.keys() }
+    percented_stats = { k: f"{int(v / test_range * 100)}%" for k, v in stats.items() }
     print(f"Probability distribution test results:\n{percented_stats}")
 
 
 #===================== MAIN =====================
 
 def main():
-    print("=" * 16 + " Testing probabilities " + "=" * 16)
-    test_weighted_choice()
+    print(BeatifulHeader('Testing probabilities'))
+    test_weighted_choice(AMOUNTS)
     print()
-    print("=" * 16 + " Detecting planet conditions " + "=" * 10)
-    amount = weighted_choice(AMOUNTS)
-    print(f"Amount of planet conditions: {amount}")
-    result = []
-    for _ in range(amount):
-        while True:
-            choice = weighted_choice(PLANET_CONDITIONS)
-            if choice not in result:
-                result.append(choice)
-                break
+    print(BeatifulHeader('Detecting planet conditions'))
+    
+    amount = AMOUNTS.weighted_choice()
     if amount == 0:
-        print("No planet conditions.")
-    else:
-        print("\t+ " + "\n\t+ ".join(result))
+        print("No planet conditions.\n")
+        return
+
+    print(f"Amount of planet conditions: {amount}")
+    
+    result = set()
+    while len(result) < amount:
+        result.add(PLANET_CONDITIONS.weighted_choice())
+        
+    print("\t+ " + "\n\t+ ".join(result))
     print()
 
 #================================================
