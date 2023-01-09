@@ -19,7 +19,7 @@ from typing import Any
 
 class Settings(dict):
     def __init__(self, *kv_args: tuple[Any, int]):
-        super().__init__({setting:prob for (setting, prob) in kv_args})
+        super().__init__({setting: prob for (setting, prob) in kv_args})
         self._choices = list(self.keys())
 
     def choices(self) -> list[Any]:
@@ -50,28 +50,31 @@ AMOUNTS = Settings(
 # Настройки планеты
 PLANET_CONDITIONS = Settings(
 #   Настройка              Вероятность
-    ("Feeble enemies",     2),
-    ("Long cycles",        3),
-    ("Double iron",        1),
-    ("Maze structure",     4),
+    ('Feeble enemies',     2),
+    ('Long cycles',        3),
+    ('Double iron',        1),
+    ('Maze structure',     4),
 )
 
 
-# Unit test
+# tests
 def test_weighted_choice(settings: Settings):
     test_condition = settings.weighted_choice()
     assert len(test_condition) > 0
     del test_condition
 
-    stats = {stat:0 for stat in range(len(settings))}
+    stats = dict.fromkeys(settings, 0)
     test_range = 10_000
     for _ in range(test_range):
         choice = settings.weighted_choice()[0]
         stats[choice] += 1
-    percented_stats = { setting: f"{prob / test_range:.2%}" for setting, prob in stats.items() }
-    sum_stats = sum([float(stat[:-1]) for stat in percented_stats.values()])
-    assert sum_stats >= 99.99 and sum_stats <= 100.01 # stats can be '100.00000000000001' or '99.99999999999999'
-    print(f"Probability distribution test results:\n{percented_stats}")
+    percented_stats = {setting: f'{prob / test_range:.2%}' for setting, prob in stats.items()}
+    
+    sum_stats = sum(float(stat[:-1]) for stat in percented_stats.values())
+    assert sum_stats > 99.99 and sum_stats < 100.01 # stats can be '100.00000000000001' or '99.99999999999999'
+    del sum_stats
+    
+    print(f'Probability distribution test results:\n{percented_stats}')
 
 
 #===================== MAIN =====================
@@ -87,14 +90,14 @@ def main():
     
     num_conditions = condition[0]
     if num_conditions == 0:
-        print("No planet conditions.\n")
+        print('No planet conditions.\n')
         return
 
-    print(f"Amount of planet conditions: {num_conditions}")
+    print(f'Amount of planet conditions: {num_conditions}')
 
     result = PLANET_CONDITIONS.weighted_choice(num_conditions)
         
-    print("\n".join(f'\t+ {r}' for r in result))
+    print('\n'.join([f'\t+ {r}' for r in result]))
     print()
 
 #================================================
