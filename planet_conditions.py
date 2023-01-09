@@ -68,7 +68,7 @@ def test_weighted_choice(settings: Settings):
     for _ in range(test_range):
         choice = settings.weighted_choice()[0]
         stats[choice] += 1
-    percented_stats = { k: f"{int(v / test_range * 100)}%" for k, v in stats.items() }
+    percented_stats = { setting: f"{prob / test_range:.2%}" for setting, prob in stats.items() }
     print(f"Probability distribution test results:\n{percented_stats}")
 
 
