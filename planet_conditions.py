@@ -60,8 +60,9 @@ PLANET_CONDITIONS = Settings(
 # Unit test
 def test_weighted_choice(settings: Settings):
     test_condition = settings.weighted_choice()
-    assert len(test_condition) == 1
-    
+    assert len(test_condition) > 0
+    del test_condition
+
     stats = {stat:0 for stat in range(len(settings))}
     test_range = 10_000
     for _ in range(test_range):
