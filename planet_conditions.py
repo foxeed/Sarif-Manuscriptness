@@ -69,6 +69,8 @@ def test_weighted_choice(settings: Settings):
         choice = settings.weighted_choice()[0]
         stats[choice] += 1
     percented_stats = { setting: f"{prob / test_range:.2%}" for setting, prob in stats.items() }
+    sum_stats = sum([float(stat[:-1]) for stat in percented_stats.values()])
+    assert sum_stats >= 99.99 and sum_stats <= 100.01 # stats can be '100.00000000000001' or '99.99999999999999'
     print(f"Probability distribution test results:\n{percented_stats}")
 
 
