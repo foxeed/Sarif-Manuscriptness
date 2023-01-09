@@ -13,7 +13,7 @@
 """
 
 
-from random import choices, sample
+from random import choices
 from typing import Any
 
 
@@ -22,12 +22,11 @@ class Settings(dict):
         super().__init__({setting:prob for (setting, prob) in kv_args})
         self._choices = list(self.keys())
 
-    def choices(self):
+    def choices(self) -> list[Any]:
         return self._choices
 
-    # gives first weighted choice
-    def weighted_choice(self):
-        return choices(self.choices(), list(self.values()))[0]
+    def weighted_choice(self, num_choices: int = 1) -> list[Any]:
+        return choices(self.choices(), list(self.values()), k=num_choices)
 
 class BeatifulHeader:
     def __init__(self, title: str):
@@ -60,10 +59,13 @@ PLANET_CONDITIONS = Settings(
 
 # Unit test
 def test_weighted_choice(settings: Settings):
+    test_condition = settings.weighted_choice()
+    assert len(test_condition) == 1
+    
     stats = {stat:0 for stat in range(len(settings))}
     test_range = 10_000
     for _ in range(test_range):
-        choice = settings.weighted_choice()
+        choice = settings.weighted_choice()[0]
         stats[choice] += 1
     percented_stats = { k: f"{int(v / test_range * 100)}%" for k, v in stats.items() }
     print(f"Probability distribution test results:\n{percented_stats}")
@@ -77,14 +79,17 @@ def main():
     print()
     print(BeatifulHeader('Detecting planet conditions'))
     
-    amount = AMOUNTS.weighted_choice()
-    if amount == 0:
+    condition = AMOUNTS.weighted_choice()
+    assert len(condition) == 1
+    
+    num_conditions = condition[0]
+    if num_conditions == 0:
         print("No planet conditions.\n")
         return
 
-    print(f"Amount of planet conditions: {amount}")
+    print(f"Amount of planet conditions: {num_conditions}")
 
-    result = sample(PLANET_CONDITIONS.choices(), k=amount)
+    result = PLANET_CONDITIONS.weighted_choice(num_conditions)
         
     print("\n".join(f'\t+ {r}' for r in result))
     print()
