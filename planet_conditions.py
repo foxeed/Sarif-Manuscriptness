@@ -84,7 +84,7 @@ def main():
     while len(result) < amount:
         result.add(PLANET_CONDITIONS.weighted_choice())
         
-    print("\t+ " + "\n\t+ ".join(result))
+    print("\n".join(f'\t+ {r}' for r in result))
     print()
 
 #================================================
