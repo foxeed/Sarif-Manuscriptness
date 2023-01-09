@@ -13,17 +13,21 @@
 """
 
 
-from random import choices
+from random import choices, sample
 from typing import Any
 
 
 class Settings(dict):
     def __init__(self, *kv_args: tuple[Any, int]):
         super().__init__({setting:prob for (setting, prob) in kv_args})
+        self._choices = list(self.keys())
+
+    def choices(self):
+        return self._choices
 
     # gives first weighted choice
     def weighted_choice(self):
-        return choices(list(self.keys()), list(self.values()))[0]
+        return choices(self.choices(), list(self.values()))[0]
 
 class BeatifulHeader:
     def __init__(self, title: str):
@@ -79,10 +83,8 @@ def main():
         return
 
     print(f"Amount of planet conditions: {amount}")
-    
-    result = set()
-    while len(result) < amount:
-        result.add(PLANET_CONDITIONS.weighted_choice())
+
+    result = sample(PLANET_CONDITIONS.choices(), k=amount)
         
     print("\n".join(f'\t+ {r}' for r in result))
     print()
