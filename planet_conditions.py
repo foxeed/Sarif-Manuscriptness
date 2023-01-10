@@ -20,13 +20,27 @@ from typing import Any
 class Settings(dict):
     def __init__(self, *kv_args: tuple[Any, int]):
         super().__init__({setting: prob for (setting, prob) in kv_args})
-        self._choices = list(self.keys())
 
-    def choices(self) -> list[Any]:
-        return self._choices
+    @staticmethod
+    def _pick_one_weighted(settings: dict[Any, int]):
+        assert settings
+        return choices(list(settings.keys()), list(settings.values()))[0]
 
-    def weighted_choice(self, num_choices: int = 1) -> list[Any]:
-        return choices(self.choices(), list(self.values()), k=num_choices)
+    def weighted_choice(self) -> Any:
+        return self._pick_one_weighted(self)
+
+    def unique_weighted_choices(self, num_choices: int) -> set[Any]:
+        if num_choices == len(self.keys()):
+            return set(self.keys())
+        
+        results: set[Any] = set()
+        choices_left: dict = self.copy()
+        while len(results) < num_choices:
+            result = self._pick_one_weighted(choices_left)
+            choices_left.pop(result)
+            results.add(result)
+            
+        return results
 
 class BeatifulHeader:
     def __init__(self, title: str):
@@ -57,16 +71,17 @@ PLANET_CONDITIONS = Settings(
 )
 
 
-# tests
-def test_weighted_choice(settings: Settings):
-    test_condition = settings.weighted_choice()
-    assert len(test_condition) > 0
-    del test_condition
+def varname(**kwargs) -> str:
+  return list(kwargs.keys())[0]
 
+# tests
+def test_weighted_choice(settings: Settings, test_range: int = 10_000):
+    print(BeatifulHeader('Testing probabilities'))
+    print()
+    
     stats = dict.fromkeys(settings, 0)
-    test_range = 10_000
     for _ in range(test_range):
-        choice = settings.weighted_choice()[0]
+        choice = settings.weighted_choice()
         stats[choice] += 1
     percented_stats = {setting: f'{prob / test_range:.2%}' for setting, prob in stats.items()}
     
@@ -74,28 +89,24 @@ def test_weighted_choice(settings: Settings):
     assert sum_stats > 99.99 and sum_stats < 100.01 # stats can be '100.00000000000001' or '99.99999999999999'
     del sum_stats
     
-    print(f'Probability distribution test results:\n{percented_stats}')
+    print(f'Probability distribution test results:\n{percented_stats}\n')
 
 
 #===================== MAIN =====================
 
 def main():
-    print(BeatifulHeader('Testing probabilities'))
     test_weighted_choice(AMOUNTS)
-    print()
+    
     print(BeatifulHeader('Detecting planet conditions'))
     
-    condition = AMOUNTS.weighted_choice()
-    assert len(condition) == 1
-    
-    num_conditions = condition[0]
+    num_conditions = AMOUNTS.weighted_choice()
     if num_conditions == 0:
         print('No planet conditions.\n')
         return
 
     print(f'Amount of planet conditions: {num_conditions}')
 
-    result = PLANET_CONDITIONS.weighted_choice(num_conditions)
+    result = PLANET_CONDITIONS.unique_weighted_choices(num_conditions)
         
     print('\n'.join([f'\t+ {r}' for r in result]))
     print()
