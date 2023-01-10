@@ -14,12 +14,15 @@
 
 
 from random import choices
+from traceback import extract_stack
 from typing import Any
 
 
 class Settings(dict):
     def __init__(self, *kv_args: tuple[Any, int]):
         super().__init__({setting: prob for (setting, prob) in kv_args})
+        (_, _, _, text) = extract_stack()[-2]
+        self.defined_name = text[:text.find('=')].strip()
 
     @staticmethod
     def _pick_one_weighted(settings: dict[Any, int]):
@@ -70,15 +73,10 @@ PLANET_CONDITIONS = Settings(
     ('Maze structure',     4),
 )
 
-
-def varname(**kwargs) -> str:
-  return list(kwargs.keys())[0]
-
 # tests
 def test_weighted_choice(settings: Settings, test_range: int = 10_000):
-    print(BeatifulHeader('Testing probabilities'))
-    print()
-    
+    print(BeatifulHeader(f'Testing probabilities: {settings.defined_name}'))
+
     stats = dict.fromkeys(settings, 0)
     for _ in range(test_range):
         choice = settings.weighted_choice()
@@ -96,6 +94,7 @@ def test_weighted_choice(settings: Settings, test_range: int = 10_000):
 
 def main():
     test_weighted_choice(AMOUNTS)
+    test_weighted_choice(PLANET_CONDITIONS)
     
     print(BeatifulHeader('Detecting planet conditions'))
     
